@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Continue as Guest — EchoSpace{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <h1 class="h2 mb-4">Continue as Guest</h1>
+    <div class="card mb-4">
+      <div class="card-body">
+        <h2 class="h6">As a guest you can:</h2>
+        <ul>
+          <li>Join existing chat rooms and send messages</li>
+          <li>Use the AI Tree Hole for emotional support</li>
+          <li>Browse the Lobby and see room list</li>
+        </ul>
+        <h2 class="h6 mt-3">As a guest you cannot:</h2>
+        <ul>
+          <li>Create new rooms</li>
+          <li>Access the Admin Dashboard</li>
+        </ul>
+      </div>
+    </div>
+    <form method="post" action="{% url 'accounts:guest' %}">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="id_nickname" class="form-label">Your nickname</label>
+        <input type="text" name="nickname" id="id_nickname" class="form-control {% if form.nickname.errors %}is-invalid{% endif %}"
+               placeholder="Enter a nickname to use in chat" maxlength="30" required
+               value="{{ form.nickname.value|default:'' }}">
+        {% if form.nickname.errors %}
+          <div class="invalid-feedback">{{ form.nickname.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Enter as Guest</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

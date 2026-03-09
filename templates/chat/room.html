@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ room.name }} — EchoSpace{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h2">{{ room.name }}</h1>
+    <p class="text-muted small mb-0">{{ room.description|default:"" }}</p>
+    <p class="small">Members: <span id="room-member-count">{{ current_count }}</span> / {{ room.max_capacity }}</p>
+  </div>
+  <form method="post" action="{% url 'chat:leave_room' room.id %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-danger">Leave room</button>
+  </form>
+</div>
+
+<section class="chat-container mb-3" aria-label="Chat messages">
+  <div id="message-list" class="message-list" aria-live="polite" aria-atomic="false">
+    {% for msg in messages_list %}
+      <div class="message-item" data-msg-id="{{ msg.id }}">
+        <strong>{{ msg.sender.public_name }}</strong>: {{ msg.content }}
+        <span class="text-muted small">{{ msg.created_at|date:"H:i" }}</span>
+      </div>
+    {% endfor %}
+  </div>
+
+  <form id="send-message-form" class="mt-3" aria-label="Send message">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <div class="input-group">
+      <label for="message-input" class="visually-hidden">Your message</label>
+      <input type="text" id="message-input" name="content" class="form-control" maxlength="1000" placeholder="Type a message..." required aria-describedby="send-btn">
+      <button type="submit" id="send-btn" class="btn btn-primary">Send</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.roomId = {{ room.id }};
+  window.csrfToken = "{{ csrf_token }}";
+  window.lastMessageId = {{ last_message_id|default:0 }};
+</script>
+<script src="{% static 'js/chat.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lobby — EchoSpace{% endblock %}
+
+{% block content %}
+<h1 class="h2 mb-4">Chat Lobby</h1>
+
+{% if is_guest %}
+  <p class="text-muted">Guests can join rooms but cannot create new rooms.</p>
+{% else %}
+  <div class="mb-4">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createRoomModal">Create Room</button>
+  </div>
+  <div class="modal fade" id="createRoomModal" tabindex="-1" aria-labelledby="createRoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="createRoomModalLabel" class="modal-title h5">Create a new room</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" action="{% url 'chat:create_room' %}">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="id_name" class="form-label">Room name</label>
+              <input type="text" name="name" id="id_name" class="form-control" maxlength="100" required placeholder="Room name">
+            </div>
+            <div class="mb-3">
+              <label for="id_description" class="form-label">Description (optional)</label>
+              <textarea name="description" id="id_description" class="form-control" rows="2" maxlength="255" placeholder="Short description"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="id_max_capacity" class="form-label">Max capacity (2–100)</label>
+              <input type="number" name="max_capacity" id="id_max_capacity" class="form-control" min="2" max="100" value="20">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<section aria-label="Room list">
+  <h2 class="h5 visually-hidden">Rooms</h2>
+  <ul class="list-unstyled">
+    {% for room in rooms %}
+      <li class="card mb-3" data-room-id="{{ room.id }}">
+        <div class="card-body">
+          <h3 class="h6 card-title">{{ room.name }}</h3>
+          <p class="card-text text-muted small">{{ room.description|default:"No description" }}</p>
+          <p class="card-text small">
+            <span class="room-current-count" data-room-id="{{ room.id }}">{{ room.current_count }}</span> / {{ room.max_capacity }} members
+            &middot; Created {{ room.created_at_display }}
+          </p>
+          <a href="{% url 'chat:room' room.id %}" class="btn btn-sm btn-outline-primary me-2">View room</a>
+          <form method="post" action="{% url 'chat:join_room' room.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-primary">Join</button>
+          </form>
+        </div>
+      </li>
+    {% empty %}
+      <li class="text-muted">No rooms yet. Create one to get started.</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/lobby.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}EchoSpace — Home{% endblock %}
+
+{% block content %}
+<section class="hero py-5">
+  <h1 class="display-4 text-center mb-4">EchoSpace</h1>
+  <p class="lead text-center text-muted mx-auto" style="max-width: 600px;">
+    A safe space for anonymous group chat and AI-supported emotional release. Share without exposure.
+  </p>
+  <div class="text-center mt-4">
+    {% if user.is_authenticated %}
+      <a class="btn btn-primary btn-lg me-2" href="{% url 'chat:lobby' %}">Go to Lobby</a>
+      <a class="btn btn-outline-secondary btn-lg" href="{% url 'ai_chat:ai_chat' %}">AI Tree Hole</a>
+    {% else %}
+      <a class="btn btn-primary btn-lg me-2" href="{% url 'accounts:register' %}">Register</a>
+      <a class="btn btn-outline-primary btn-lg me-2" href="{% url 'accounts:login' %}">Login</a>
+      <a class="btn btn-outline-secondary btn-lg" href="{% url 'accounts:guest' %}">Continue as Guest</a>
+    {% endif %}
+  </div>
+</section>
+
+<section class="features py-5">
+  <h2 class="h3 text-center mb-4">What we offer</h2>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h3 class="h5 card-title">Anonymous group support</h3>
+          <p class="card-text">Join rooms and chat without revealing your identity. Get real-time companionship.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h3 class="h5 card-title">AI Tree Hole</h3>
+          <p class="card-text">Talk to an AI that responds with empathy. No judgment, just support.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h3 class="h5 card-title">Safe emotional space</h3>
+          <p class="card-text">Minimize social exposure while still feeling heard and connected.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

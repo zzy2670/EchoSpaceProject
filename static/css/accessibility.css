@@ -1,0 +1,45 @@
+/* Accessibility: focus and contrast */
+*:focus {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}
+
+.skip-link:focus {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Higher contrast for interactive elements */
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  filter: brightness(1.05);
+}
+
+.navbar-dark .nav-link:focus-visible {
+  color: #fff;
+  background: rgba(255,255,255,0.15);
+  border-radius: 0.25rem;
+}
+
+/* Ensure labels are visible */
+.form-label {
+  font-weight: 500;
+}

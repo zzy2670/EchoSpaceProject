@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard — EchoSpace{% endblock %}
+
+{% block content %}
+<h1 class="h2 mb-4">Admin Dashboard</h1>
+
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6 card-title">Total users</h2>
+        <p class="card-text display-6">{{ total_users }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6 card-title">Guests</h2>
+        <p class="card-text display-6">{{ guest_count }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6 card-title">Rooms</h2>
+        <p class="card-text display-6">{{ room_count }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6 card-title">Messages</h2>
+        <p class="card-text display-6">{{ message_count }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6 card-title">AI conversations</h2>
+        <p class="card-text display-6">{{ ai_conv_count }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section aria-label="Recent activity">
+  <h2 class="h5 mb-3">Recent rooms</h2>
+  <ul class="list-group mb-4">
+    {% for r in recent_rooms %}
+      <li class="list-group-item d-flex justify-content-between">
+        <span>{{ r.name }}</span>
+        <span class="text-muted small">by {{ r.created_by.public_name }} · {{ r.created_at|date:"M j, H:i" }}</span>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-muted">No rooms yet.</li>
+    {% endfor %}
+  </ul>
+
+  <h2 class="h5 mb-3">Recent messages</h2>
+  <ul class="list-group mb-4">
+    {% for m in recent_messages %}
+      <li class="list-group-item">
+        <strong>{{ m.sender.public_name }}</strong> in {{ m.room.name }}: {{ m.content|truncatewords:15 }}
+        <span class="text-muted small">{{ m.created_at|date:"M j, H:i" }}</span>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-muted">No messages yet.</li>
+    {% endfor %}
+  </ul>
+
+  <h2 class="h5 mb-3">Recent AI conversations</h2>
+  <ul class="list-group">
+    {% for c in recent_conversations %}
+      <li class="list-group-item d-flex justify-content-between">
+        <span>{{ c.title|default:"Conversation"|truncatewords:6 }}</span>
+        <span class="text-muted small">{{ c.user.public_name }} · {{ c.updated_at|date:"M j, H:i" }}</span>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-muted">No AI conversations yet.</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AI Tree Hole — EchoSpace{% endblock %}
+
+{% block content %}
+<h1 class="h2 mb-4">AI Tree Hole</h1>
+<p class="text-muted">Share what's on your mind. The AI will respond with support and empathy.</p>
+
+<div class="row">
+  <aside class="col-md-4 mb-4" aria-label="Conversation history">
+    <h2 class="h6">Past conversations</h2>
+    <ul class="list-group list-group-flush">
+      {% for conv in conversations %}
+        <li class="list-group-item">
+          <a href="{% url 'ai_chat:conversation' conv.id %}">{{ conv.title|default:"Conversation"|truncatewords:8 }}</a>
+          <span class="text-muted small">{{ conv.updated_at|date:"M j" }}</span>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">No past conversations.</li>
+      {% endfor %}
+    </ul>
+    <a href="{% url 'ai_chat:ai_chat' %}" class="btn btn-sm btn-outline-primary mt-2">New conversation</a>
+  </aside>
+  <div class="col-md-8">
+    <div id="ai-messages" class="ai-messages mb-3" aria-live="polite" aria-atomic="false" role="log">
+      {% if conversation %}
+        {% for msg in conversation.messages.all %}
+          <div class="ai-msg ai-msg-{{ msg.role }} mb-2">
+            <strong>{% if msg.role == 'user' %}You{% else %}AI{% endif %}:</strong> {{ msg.content }}
+            <span class="text-muted small">{{ msg.created_at|date:"H:i" }}</span>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    <div id="ai-error" class="alert alert-danger d-none" role="alert"></div>
+    <div id="ai-loading" class="d-none">Thinking...</div>
+    <form id="ai-send-form" aria-label="Send message to AI">
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+      <input type="hidden" id="conversation-id" value="{{ conversation.id|default:'' }}">
+      <div class="mb-2">
+        <label for="ai-prompt-input" class="form-label visually-hidden">Your message</label>
+        <textarea id="ai-prompt-input" name="prompt" class="form-control" rows="3" maxlength="2000" placeholder="Type what you'd like to share..." required></textarea>
+      </div>
+      <button type="submit" id="ai-send-btn" class="btn btn-primary">Send</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.csrfToken = "{{ csrf_token }}";
+  window.conversationId = "{{ conversation.id|default:'' }}";
+</script>
+<script src="{% static 'js/ai_chat.js' %}"></script>
+{% endblock %}
