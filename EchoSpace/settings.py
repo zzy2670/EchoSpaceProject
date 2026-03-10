@@ -107,3 +107,15 @@ X_FRAME_OPTIONS = "DENY"
 AI_PROVIDER = os.environ.get("AI_PROVIDER", "mock")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+# DashScope / Bailian intelligent agent (optional)
+DASHSCOPE_API_KEY = os.environ.get("DASHSCOPE_API_KEY", "")
+DASHSCOPE_APP_ID = os.environ.get("DASHSCOPE_APP_ID", "")
+
+# AppFlow page-embedded AI chat
+APPFLOW_AI_CHAT_ENABLED = os.environ.get("APPFLOW_AI_CHAT_ENABLED", "False").lower() in (
+    "true",
+    "1",
+    "yes",
+)
+APPFLOW_AI_CHAT_URL = os.environ.get("APPFLOW_AI_CHAT_URL", "")

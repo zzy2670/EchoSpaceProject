@@ -1,113 +1,58 @@
 # EchoSpace
 
-EchoSpace is an anonymous group chat and AI "Tree Hole" website. It provides instant emotional release, real resonance, and AI-guided support while minimizing social exposure.
+Anonymous group chat + AI “Tree Hole” (emotional support chat). Django backend, Bootstrap front, SQLite locally / Postgres in prod.
 
-## Features
+## What’s in it
 
-- **Home / Product intro** — Landing page with feature overview
-- **Register / Login / Guest mode** — Full auth with optional anonymous guest access
-- **Lobby** — Browse rooms, see member counts, create rooms (registered users only)
-- **Group Chat** — Join rooms, send/receive messages via AJAX polling
-- **AI Tree Hole** — Chat with an AI for emotional support (mock or OpenAI)
-- **Admin Dashboard** — Staff-only overview (user count, rooms, messages, AI sessions)
+- Home, register / login / guest.
+- Lobby: list rooms, create (if not guest), join. Group chat via polling.
+- AI Tree Hole: chat with AI (mock or openai/dashscope). Can embed AppFlow iframe if you set the env vars.
+- Dashboard for staff (counts, rooms, messages, AI).
 
-## Tech Stack
+## Run locally
 
-- **Backend:** Python 3.11, Django 4.2 LTS
-- **Frontend:** HTML, CSS, Bootstrap 5, vanilla JavaScript + fetch
-- **Database:** SQLite (local), PostgreSQL (production via `DATABASE_URL`)
-- **Deployment:** Gunicorn, WhiteNoise, Render.com
-
-## Local Development
-
-### 1. Clone and setup
+Clone, venv, install deps:
 
 ```bash
-git clone <Add your GitHub URL here>
+git clone <your-repo-url>
 cd EchoSpaceProject
 python -m venv .venv
-.venv\Scripts\activate   # Windows
-# or: source .venv/bin/activate   # macOS/Linux
-```
-
-### 2. Install dependencies
-
-```bash
+.venv\Scripts\activate   # Windows; on Mac/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Environment variables
-
-Copy `.env.example` to `.env` and adjust:
+Copy env and edit:
 
 ```bash
 cp .env.example .env
 ```
 
-- `SECRET_KEY` — Use a random string for local dev
-- `DEBUG=True` for local
-- `AI_PROVIDER=mock` — No API key needed; set to `openai` and add `OPENAI_API_KEY` for real AI
+In `.env`: `SECRET_KEY`, `DEBUG=True`, `AI_PROVIDER=mock` (or `openai`/`dashscope` with keys). For AppFlow embed: `APPFLOW_AI_CHAT_ENABLED=True`, `APPFLOW_AI_CHAT_URL=<your AppFlow page url>`.
 
-### 4. Migrations
+Migrate and run:
 
 ```bash
-python manage.py makemigrations
 python manage.py migrate
-```
-
-### 5. Create superuser (optional)
-
-```bash
-python manage.py createsuperuser
-```
-
-### 6. Run server
-
-```bash
 python manage.py runserver
 ```
 
-Open http://127.0.0.1:8000/
+Optional: `createsuperuser` for admin/dashboard. Then open http://127.0.0.1:8000/
 
-## Running Tests
+## Tests
 
 ```bash
 python manage.py test
 ```
 
-Tests cover: main pages, accounts (register/login/guest), chat (rooms, messages, API), AI chat (mock provider), dashboard (staff-only).
+Covers main, accounts, chat (lobby/rooms/API), ai_chat (mock + appflow config), dashboard.
 
-## Deployment (Render.com)
+## Deploy (e.g. Render)
 
-1. Create a new Web Service and connect your repo.
-2. Add a PostgreSQL database and link it (Render sets `DATABASE_URL`).
-3. Set environment variables in Render dashboard (or use `render.yaml`).
-4. Build command: `pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate`
-5. Start command: `gunicorn EchoSpace.wsgi:application`
+New Web Service, connect repo, add Postgres (`DATABASE_URL`). Set env vars from `.env.example`. Build: `pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate`. Start: `gunicorn EchoSpace.wsgi:application`. Put your deployed URL in docs if needed.
 
-Deployed URL: _Add your Render URL here_
+## Repo layout
 
-## Project Structure
-
-```
-EchoSpaceProject/
-├── manage.py
-├── EchoSpace/          # Project settings, urls, wsgi
-├── main/               # Home, health
-├── accounts/           # User model, register, login, guest
-├── chat/               # Lobby, rooms, messages, API
-├── ai_chat/            # AI Tree Hole, conversations, API
-├── dashboard/          # Staff dashboard
-├── templates/
-├── static/
-└── requirements.txt, render.yaml, .env.example
-```
-
-## Team
-
-- Member A: Backend, database, deployment
-- _Add other members and roles here_
-
-## License
-
-Course project — use as specified by your course requirements.
+- `EchoSpace/` — settings, urls, wsgi
+- `main/`, `accounts/`, `chat/`, `ai_chat/`, `dashboard/` — apps
+- `templates/`, `static/`
+- `requirements.txt`, `render.yaml`, `.env.example`

@@ -1,3 +1,6 @@
+#Please enter "python manage.py runserver" in the terminal to start the program.
+
+
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
 import os

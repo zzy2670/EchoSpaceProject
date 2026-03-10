@@ -1,3 +1,4 @@
+# POST prompt (optional conversation_id) -> conversation_id, user_message, assistant_message. Same shape for legacy form/JS.
 import json
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -7,7 +8,9 @@ from . import services
 
 
 def _json_ok(data):
-    return JsonResponse({"ok": True, **data})
+    out = {"ok": True}
+    out.update(data)
+    return JsonResponse(out)
 
 
 def _json_error(msg, status=400):
@@ -17,7 +20,7 @@ def _json_error(msg, status=400):
 @require_POST
 @login_required
 def ai_send_api(request):
-    """Accept prompt and optional conversation_id. Return conversation_id, user message, assistant message."""
+    # json or form body; handle_ai_chat does the rest
     try:
         if request.content_type and "application/json" in request.content_type:
             body = json.loads(request.body.decode("utf-8"))

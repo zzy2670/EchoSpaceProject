@@ -1,10 +1,7 @@
-"""
-AI chat business logic. Supports mock (default) and OpenAI.
-"""
+# Reply generation , conversation create/save. session_id stored on AIConversation for dashscope multi-turn.
 from django.conf import settings
 from .models import AIConversation, AIMessage
 
-# Mock responses for emotional support when no API key
 MOCK_RESPONSES = [
     "Thank you for sharing that. It sounds like you're carrying a lot right now. Remember, it's okay to take things one step at a time.",
     "I hear you. What you're feeling is valid. Sometimes just naming our feelings can help us feel a little lighter.",
@@ -15,14 +12,14 @@ MOCK_RESPONSES = [
 
 
 def _mock_reply(prompt):
-    """Return a stable mock reply based on prompt (for tests) or random."""
+    # hash so tests get stable reply; leave as-is
     import hashlib
     idx = int(hashlib.md5((prompt or "").encode()).hexdigest(), 16) % len(MOCK_RESPONSES)
     return MOCK_RESPONSES[idx]
 
 
 def _openai_reply(prompt):
-    """Call OpenAI API if key is set. On any failure, return None to fall back to mock."""
+    # None => caller falls back to mock
     api_key = getattr(settings, "OPENAI_API_KEY", None)
     if not api_key:
         return None
@@ -45,17 +42,54 @@ def _openai_reply(prompt):
         return None
 
 
-def generate_ai_reply(prompt):
-    """Generate AI reply. Uses OpenAI if configured, else mock."""
+def _dashscope_reply(prompt, session_id=None):
+    # returns (text, new_sid) or (None, None)
+    api_key = getattr(settings, "DASHSCOPE_API_KEY", "") or None
+    app_id = getattr(settings, "DASHSCOPE_APP_ID", "") or None
+    if not api_key or not app_id:
+        return None, None
+    try:
+        from http import HTTPStatus
+        from dashscope import Application
+
+        kwargs = {
+            "api_key": api_key,
+            "app_id": app_id,
+            "prompt": prompt[:2000],
+        }
+        if session_id:
+            kwargs["session_id"] = session_id
+
+        response = Application.call(**kwargs)
+        if response.status_code != HTTPStatus.OK:
+            return None, None
+        text = getattr(response.output, "text", None)
+        new_sid = getattr(response.output, "session_id", None) or None
+        if not text:
+            return None, new_sid
+        return str(text).strip(), new_sid
+    except Exception:
+        return None, None
+
+
+def generate_ai_reply(prompt, conversation=None):
+    # provider from settings; conversation only used to pass dashscope session_id
     prompt = (prompt or "").strip()
     if not prompt:
-        return "Please share what's on your mind."
+        return "Please share what's on your mind.", None
     provider = getattr(settings, "AI_PROVIDER", "mock").lower()
     if provider == "openai":
         reply = _openai_reply(prompt)
         if reply:
-            return reply
-    return _mock_reply(prompt)
+            return reply, None
+    elif provider in ("dashscope", "bailian", "aliyun"):
+        sid = None
+        if conversation:
+            sid = (getattr(conversation, "dashscope_session_id", None) or "").strip() or None
+        reply, new_sid = _dashscope_reply(prompt, session_id=sid)
+        if reply:
+            return reply, new_sid
+    return _mock_reply(prompt), None
 
 
 def create_or_get_conversation(user, conversation_id=None, first_prompt=None):
@@ -80,11 +114,7 @@ def save_assistant_message(conversation, content):
 
 
 def handle_ai_chat(user, prompt, conversation_id=None):
-    """
-    Process one user message: create/get conversation, save user message,
-    generate reply, save assistant message. Returns (conversation, user_msg, assistant_content).
-    On error raises or returns (None, None, error_message).
-    """
+    # one turn: conv, user msg, reply (and sid when dashscope), assistant msg. Return (conv, reply)
     prompt = (prompt or "").strip()
     if not prompt:
         raise ValueError("Prompt cannot be empty.")
@@ -93,9 +123,15 @@ def handle_ai_chat(user, prompt, conversation_id=None):
     conversation = create_or_get_conversation(user, conversation_id=conversation_id, first_prompt=prompt)
     save_user_message(conversation, prompt)
     try:
-        reply = generate_ai_reply(prompt)
-    except Exception as e:
+        reply, session_id_to_save = generate_ai_reply(prompt, conversation=conversation)
+    except Exception:
         reply = "I'm sorry, I couldn't process that right now. Please try again in a moment."
+        session_id_to_save = None
     save_assistant_message(conversation, reply)
-    conversation.save(update_fields=["updated_at"])
+    update_fields = ["updated_at"]
+    if session_id_to_save:
+        conversation.dashscope_session_id = session_id_to_save
+        update_fields.append("dashscope_session_id")
+    conversation.save(update_fields=update_fields)
+    # print('sid saved', conversation.dashscope_session_id[:16] if conversation.dashscope_session_id else None)
     return conversation, reply

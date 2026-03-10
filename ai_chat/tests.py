@@ -1,6 +1,6 @@
 import json
 from unittest.mock import patch
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from .models import AIConversation, AIMessage
@@ -27,9 +27,26 @@ class AIChatTest(TestCase):
         response = self.client.get(reverse("ai_chat:ai_chat"))
         self.assertEqual(response.status_code, 200)
 
-    def test_send_prompt_saves_messages(self):
+    @override_settings(APPFLOW_AI_CHAT_ENABLED=True, APPFLOW_AI_CHAT_URL="https://example.com/appflow")
+    def test_ai_page_renders_iframe_when_appflow_enabled(self):
         self.client.login(username="testuser", password="pass123")
-        with patch.object(services, "generate_ai_reply", return_value="Mock reply here"):
+        response = self.client.get(reverse("ai_chat:ai_chat"))
+      # The view should expose the AppFlow config to the template
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["appflow_enabled"])
+        self.assertEqual(response.context["appflow_url"], "https://example.com/appflow")
+
+    @override_settings(APPFLOW_AI_CHAT_ENABLED=False, APPFLOW_AI_CHAT_URL="")
+    def test_ai_page_no_appflow_config_ok(self):
+        self.client.login(username="testuser", password="pass123")
+        response = self.client.get(reverse("ai_chat:ai_chat"))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["appflow_enabled"])
+        self.assertEqual(response.context["appflow_url"], "")
+
+    def test_send_prompt_creates_conv_and_messages(self):
+        self.client.login(username="testuser", password="pass123")
+        with patch.object(services, "generate_ai_reply", return_value=("Mock reply here", None)):
             response = self.client.post(
                 "/ai/api/send/",
                 json.dumps({"prompt": "Hello"}),
@@ -55,7 +72,7 @@ class AIChatTest(TestCase):
         self.assertTrue(len(data["assistant_message"]) > 0)
 
     def test_mock_provider_works_without_key(self):
-        reply = services.generate_ai_reply("Hello")
+        reply, _ = services.generate_ai_reply("Hello")
         self.assertTrue(isinstance(reply, str))
         self.assertTrue(len(reply) > 0)
 
@@ -75,3 +92,4 @@ class AIChatTest(TestCase):
         data = response.json()
         self.assertFalse(data.get("ok"))
         self.assertIn("error", data)
+        # print(data)  # debug 500 vs 400

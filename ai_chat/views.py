@@ -1,11 +1,14 @@
+# AI Tree Hole page; same template for new chat or opening by conversation_id (history). Context keys used by template: don't rename.
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 from django.shortcuts import render, get_object_or_404
+
 from .models import AIConversation
 
 
 @login_required
 def ai_chat_view(request, conversation_id=None):
-    """Single template for new chat and viewing a past conversation."""
+    # appflow_enabled / appflow_url come from settings, template picks iframe vs fallback
     conversation = None
     if conversation_id:
         conversation = get_object_or_404(
@@ -20,5 +23,7 @@ def ai_chat_view(request, conversation_id=None):
         {
             "conversation": conversation,
             "conversations": conversations,
+            "appflow_enabled": getattr(settings, "APPFLOW_AI_CHAT_ENABLED", False),
+            "appflow_url": getattr(settings, "APPFLOW_AI_CHAT_URL", ""),
         },
     )

@@ -1,3 +1,4 @@
+# conversation + messages. relation names (conversations, messages) used by api/templates - don't rename
 from django.conf import settings
 from django.db import models
 
@@ -11,6 +12,7 @@ class AIConversation(models.Model):
     title = models.CharField(max_length=120, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    dashscope_session_id = models.CharField(max_length=256, blank=True, default="")
 
     def __str__(self):
         return self.title or f"Conversation {self.id}"

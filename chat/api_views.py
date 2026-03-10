@@ -8,6 +8,7 @@ from . import services
 
 
 def _json_ok(data):
+    # lobby/room APIs wrap in "data" key
     return JsonResponse({"ok": True, "data": data})
 
 
