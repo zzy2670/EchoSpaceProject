@@ -119,3 +119,4 @@ APPFLOW_AI_CHAT_ENABLED = os.environ.get("APPFLOW_AI_CHAT_ENABLED", "False").low
     "yes",
 )
 APPFLOW_AI_CHAT_URL = os.environ.get("APPFLOW_AI_CHAT_URL", "")
+ALLOWED_HOSTS = ['*']
