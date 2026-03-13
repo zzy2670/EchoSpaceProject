@@ -1,37 +1,174 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Login — EchoSpace{% endblock %}
+{% block title %}Login / Register — EchoSpace{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-5">
-    <h1 class="h2 mb-4">Login</h1>
-    <form method="post" action="{% url 'accounts:login' %}" novalidate>
-      {% csrf_token %}
-      {% for field in form %}
-        <div class="mb-3">
-          <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-          <input type="{% if field.name == 'password' %}password{% else %}text{% endif %}"
-                 name="{{ field.name }}"
-                 id="{{ field.id_for_label }}"
-                 class="form-control {% if field.errors %}is-invalid{% endif %}"
-                 value="{{ field.value|default:'' }}"
-                 autocomplete="{% if field.name == 'password' %}current-password{% else %}username{% endif %}"
-                 required>
-          {% if field.errors %}
-            <div class="invalid-feedback">{{ field.errors.0 }}</div>
-          {% endif %}
+<div class="container-fluid vh-100 d-flex flex-column" style="margin-top: -1.5rem;">
+    <div class="row flex-grow-1 align-items-center justify-content-center position-relative">
+        
+        <div class="col-md-6 d-none d-md-flex flex-column justify-content-center align-items-center h-100" 
+             style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); box-shadow: inset -10px 0 20px rgba(0,0,0,0.2);">
+            <div class="p-5 text-center text-white" style="background: rgba(0,0,0,0.2); border-radius: 15px; backdrop-filter: blur(5px);">
+                <h1 class="display-4 fw-bold mb-3">EchoSpace</h1>
+                <p class="lead fst-italic">"Embrace your emotions in anonymity"</p>
+            </div>
         </div>
-      {% endfor %}
-      {% if form.non_field_errors %}
-        <div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>
-      {% endif %}
-      <button type="submit" class="btn btn-primary w-100">Login</button>
-    </form>
-    <p class="mt-3 mb-0">
-      <a href="{% url 'accounts:register' %}">Create an account</a> &middot;
-      <a href="{% url 'accounts:guest' %}">Continue as Guest</a>
-    </p>
-  </div>
+
+        <div class="col-md-6 d-flex justify-content-center">
+            <div class="w-100" style="max-width: 400px; padding: 2rem;">
+                <h2 class="fw-bold mb-4">Login / Register</h2>
+                
+                <form method="post" action="{% url 'accounts:login' %}" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger p-2 small mb-3 border-0 rounded-1" role="alert">
+                        {% for error in form.non_field_errors %}
+                            <strong>{{ error }}</strong>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label text-muted small">Username / Email</label>
+                        <input type="text" name="username" id="id_username" 
+                               class="form-control form-control-lg bg-light {% if form.username.errors %}is-invalid{% endif %}" 
+                               placeholder="Enter your username..." 
+                               value="{{ form.username.value|default_if_none:'' }}" required>
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback fw-bold">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="id_password" class="form-label text-muted small">Password</label>
+                        <input type="password" name="password" id="id_password" 
+                               class="form-control form-control-lg bg-light {% if form.password.errors %}is-invalid{% endif %}" 
+                               placeholder="••••••••" required>
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback fw-bold">{{ form.password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-dark btn-lg w-100 mb-3 fw-bold rounded-0">LOGIN</button>
+                    
+                    <div class="text-center mb-4">
+                        <span class="small text-muted">Don't have an account? </span>
+                        <a href="#registerDrawer" data-bs-toggle="offcanvas" role="button" aria-controls="registerDrawer" class="small text-dark fw-bold text-decoration-underline">Register here</a>
+                    </div>
+                    <hr class="my-4">
+                    <div class="text-center">
+                        <a href="{% url 'accounts:guest' %}" class="text-dark fw-bold text-decoration-underline">Enter as Guest (Read-only mode)</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
+<div class="offcanvas offcanvas-end shadow" tabindex="-1" id="registerDrawer" aria-labelledby="registerDrawerLabel" style="width: 450px;">
+    <div class="offcanvas-header border-bottom">
+        <div>
+            <h3 class="offcanvas-title fw-bold" id="registerDrawerLabel">Create Account</h3>
+            <p class="text-muted small mb-0">Join the community</p>
+        </div>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    
+    <div class="offcanvas-body p-4">
+        <form method="post" action="{% url 'accounts:register' %}" id="ajax-register-form" novalidate>
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label text-muted small">Email Address</label>
+                <input type="email" name="email" class="form-control rounded-0" placeholder="user@example.com" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-muted small">Username</label>
+                <input type="text" name="username" class="form-control rounded-0" placeholder="Choose a pseudonym..." required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-muted small">Password</label>
+                <input type="password" name="password1" class="form-control rounded-0" placeholder="••••••" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label text-muted small">Confirm Password</label>
+                <input type="password" name="password2" class="form-control rounded-0" placeholder="••••••" required>
+            </div>
+            <button type="submit" class="btn btn-dark btn-lg w-100 fw-bold rounded-0">SIGN UP</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    nav.navbar, footer { display: none !important; }
+    body { background-color: #f8f9fa; }
+    .form-control { border-radius: 0; }
+    .messages {
+        position: absolute !important;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        width: 100%;
+        max-width: 400px;
+    }
+    .messages .alert {
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        border: none;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.addEventListener('submit', function(e) {
+        
+        if (e.target.matches('#ajax-register-form')) {
+            e.preventDefault(); 
+            
+            const form = e.target;
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Processing...';
+            btn.disabled = true;
+
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url; 
+                    return null;
+                }
+                return response.text();
+            })
+            .then(html => {
+                if (!html) return;
+                
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const registerUrl = "{% url 'accounts:register' %}";
+                const newForm = doc.querySelector(`form[action="${registerUrl}"]`);
+                if (newForm) {
+                    form.innerHTML = newForm.innerHTML;
+                }
+            })
+            .catch(err => {
+                console.error('Registration error:', err);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+    });
+});
+</script>
 {% endblock %}

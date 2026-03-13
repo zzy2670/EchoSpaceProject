@@ -4,50 +4,80 @@
 {% block title %}EchoSpace — Home{% endblock %}
 
 {% block content %}
-<section class="hero py-5">
-  <h1 class="display-4 text-center mb-4">EchoSpace</h1>
-  <p class="lead text-center text-muted mx-auto" style="max-width: 600px;">
-    A safe space for anonymous group chat and AI-supported emotional release. Share without exposure.
-  </p>
-  <div class="text-center mt-4">
-    {% if user.is_authenticated %}
-      <a class="btn btn-primary btn-lg me-2" href="{% url 'chat:lobby' %}">Go to Lobby</a>
-      <a class="btn btn-outline-secondary btn-lg" href="{% url 'ai_chat:ai_chat' %}">AI Tree Hole</a>
-    {% else %}
-      <a class="btn btn-primary btn-lg me-2" href="{% url 'accounts:register' %}">Register</a>
-      <a class="btn btn-outline-primary btn-lg me-2" href="{% url 'accounts:login' %}">Login</a>
-      <a class="btn btn-outline-secondary btn-lg" href="{% url 'accounts:guest' %}">Continue as Guest</a>
-    {% endif %}
+<section class="py-5 text-center container">
+  <div class="row py-lg-5">
+    <div class="col-lg-6 col-md-8 mx-auto">
+      <h1 class="display-4 fw-bold mb-4">Welcome to EchoSpace</h1>
+      <p class="lead text-muted mb-5">
+        A safe space for anonymous group chat and AI-supported emotional release. 
+        Drop your mask, share your thoughts, and find resonance without exposure.
+      </p>
+      <p>
+        {% if user.is_authenticated %}
+          <a href="{% url 'chat:lobby' %}" class="btn btn-dark btn-lg px-5 rounded-pill shadow-sm">Go to Lobby</a>
+        {% else %}
+          <a href="{% url 'accounts:login' %}" class="btn btn-dark btn-lg px-5 rounded-pill shadow-sm">Enter EchoSpace</a>
+        {% endif %}
+      </p>
+    </div>
   </div>
 </section>
 
-<section class="features py-5">
-  <h2 class="h3 text-center mb-4">What we offer</h2>
-  <div class="row g-4">
-    <div class="col-md-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <h3 class="h5 card-title">Anonymous group support</h3>
-          <p class="card-text">Join rooms and chat without revealing your identity. Get real-time companionship.</p>
+<section class="features py-5 bg-light rounded-4 shadow-sm mb-5">
+  <div class="container px-4">
+    <h2 class="h3 text-center mb-5 fw-bold">What we offer</h2>
+    <div class="row g-4">
+      
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-4 hover-lift">
+          <div class="card-body d-flex flex-column justify-content-center">
+            <h3 class="h5 card-title fw-bold mb-3">Anonymous Group</h3>
+            <p class="card-text text-muted small">Join rooms and chat without revealing your identity. Get real-time companionship.</p>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <h3 class="h5 card-title">AI Tree Hole</h3>
-          <p class="card-text">Talk to an AI that responds with empathy. No judgment, just support.</p>
+      
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-4 hover-lift">
+          <div class="card-body d-flex flex-column justify-content-center">
+            <h3 class="h5 card-title fw-bold mb-3">AI Tree Hole</h3>
+            <p class="card-text text-muted small">Talk to an AI that responds with empathy. No judgment, just pure support.</p>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <h3 class="h5 card-title">Safe emotional space</h3>
-          <p class="card-text">Minimize social exposure while still feeling heard and connected.</p>
+      
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-4 hover-lift">
+          <div class="card-body d-flex flex-column justify-content-center">
+            <h3 class="h5 card-title fw-bold mb-3">Safe Space</h3>
+            <p class="card-text text-muted small">Minimize social exposure while still feeling heard and genuinely connected.</p>
+          </div>
         </div>
       </div>
+
     </div>
   </div>
 </section>
+
+<style>
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+  }
+  
+  nav.navbar, footer { 
+    display: none !important; 
+  }
+  
+  body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #fcfcfc;
+  }
+</style>
 {% endblock %}
