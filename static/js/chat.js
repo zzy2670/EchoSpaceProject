@@ -16,14 +16,45 @@
 
   function addMessage(msg) {
     if (!list) return;
+    
+    var isMe = (msg.sender_name === window.currentUsername);
+    
+    var timeStr = formatTime(msg.created_at);
+    var safeContent = escapeHtml(msg.content);
+    var safeSender = escapeHtml(msg.sender_name || 'Unknown');
+    var msgId = msg.id;
+
     var div = document.createElement('div');
-    div.className = 'message-item';
-    div.setAttribute('data-msg-id', msg.id);
-    div.innerHTML = '<strong>' + escapeHtml(msg.sender_name) + '</strong>: ' +
-      escapeHtml(msg.content) + ' <span class="text-muted small">' + formatTime(msg.created_at) + '</span>';
+    div.setAttribute('data-msg-id', msgId);
+
+    if (isMe) {
+      div.className = "align-self-end mb-3 msg-wrapper d-flex flex-column align-items-end";
+      div.style.maxWidth = "85%";
+      div.innerHTML = `
+          <div class="d-flex align-items-baseline mb-1 px-1">
+              <span class="text-muted me-2" style="font-size: 0.65rem;">${timeStr}</span>
+              <strong class="text-primary" style="font-size: 0.75rem;">Me</strong>
+          </div>
+          <div class="d-flex align-items-start justify-content-end w-100">
+              <button class="btn btn-sm btn-light text-danger rounded-circle shadow-sm withdraw-btn me-2 mt-1 d-flex align-items-center justify-content-center" title="Withdraw message" onclick="withdrawMessage(${msgId})">×</button>
+              <div class="bubble-self">${safeContent}</div>
+          </div>
+      `;
+    } else {
+      div.className = "align-self-start mb-3 msg-wrapper d-flex flex-column align-items-start";
+      div.style.maxWidth = "85%";
+      div.innerHTML = `
+          <div class="d-flex align-items-baseline mb-1 px-1">
+              <strong class="text-dark me-2" style="font-size: 0.75rem;">${safeSender}</strong>
+              <span class="text-muted" style="font-size: 0.65rem;">${timeStr}</span>
+          </div>
+          <div class="bubble-other">${safeContent}</div>
+      `;
+    }
+
     list.appendChild(div);
     scrollToBottom();
-    lastMessageId = msg.id;
+    lastMessageId = msgId;
   }
 
   function escapeHtml(s) {
@@ -43,6 +74,9 @@
       e.preventDefault();
       var content = (input && input.value) ? input.value.trim() : '';
       if (!content) return;
+      
+      input.value = '';
+      
       var body = JSON.stringify({ content: content });
       fetch('/chat/api/rooms/' + roomId + '/messages/send/', {
         method: 'POST',
@@ -58,7 +92,6 @@
         .then(function (data) {
           if (data.ok && data.data) {
             addMessage(data.data);
-            if (input) input.value = '';
           } else {
             alert(data.error || 'Failed to send');
           }

@@ -66,8 +66,12 @@ def room_view(request, room_id):
     if not is_member:
         messages.error(request, "You must join this room first.")
         return redirect("chat:lobby")
+        
     messages_list = services.get_room_messages(room)
     last_msg_id = messages_list[-1].id if messages_list else 0
+    
+    rooms_data = services.get_lobby_room_data()
+    
     return render(
         request,
         "chat/room.html",
@@ -76,6 +80,7 @@ def room_view(request, room_id):
             "messages_list": messages_list,
             "current_count": room.current_member_count(),
             "last_message_id": last_msg_id,
+            "rooms": rooms_data, 
         },
     )
 

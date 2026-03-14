@@ -3,86 +3,134 @@
 {% block title %}Admin Dashboard — EchoSpace{% endblock %}
 
 {% block content %}
-<h1 class="h2 mb-4">Admin Dashboard</h1>
+<div class="position-fixed top-0 start-0 w-100 h-100 d-flex" style="z-index: 1000; background-color: #f4f6f9;">
+    
+    <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark" style="width: 280px; height: 100vh;">
+        <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none px-2">
+            <span class="fs-4 fw-bold">EchoSpace</span>
+        </a>
+        <span class="text-secondary small px-2 mb-4" style="letter-spacing: 1px;">ADMIN PORTAL</span>
+        
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item mb-1">
+                <a href="#" class="nav-link active bg-primary text-white" aria-current="page">
+                     Dashboard
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a href="{% url 'chat:lobby' %}" class="nav-link text-white opacity-75 hover-opacity-100">
+                     Back to Lobby
+                </a>
+            </li>
+        </ul>
+        <hr>
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle px-2" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                <strong class="ms-1">Admin: {{ user.public_name }}</strong>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+                <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">Sign out</a></li>
+            </ul>
+        </div>
+    </div>
 
-<div class="row g-3 mb-4">
-  <div class="col-sm-6 col-md-4">
-    <div class="card">
-      <div class="card-body">
-        <h2 class="h6 card-title">Total users</h2>
-        <p class="card-text display-6">{{ total_users }}</p>
-      </div>
+    <div class="flex-grow-1 overflow-auto p-5 custom-scrollbar">
+        <h2 class="fw-bold mb-4 text-dark">System Overview</h2>
+        
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 bg-white h-100 border-bottom border-primary border-4">
+                    <div class="card-body">
+                        <h6 class="text-muted fw-bold text-uppercase mb-2">Total Users</h6>
+                        <h2 class="display-5 fw-bold text-dark mb-0">{{ total_users }}</h2>
+                        <span class="badge bg-success mt-2">+{{ guest_count }} Guests</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 bg-white h-100 border-bottom border-warning border-4">
+                    <div class="card-body">
+                        <h6 class="text-muted fw-bold text-uppercase mb-2">Active Rooms</h6>
+                        <h2 class="display-5 fw-bold text-dark mb-0">{{ room_count }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 bg-white h-100 border-bottom border-info border-4">
+                    <div class="card-body">
+                        <h6 class="text-muted fw-bold text-uppercase mb-2">Messages</h6>
+                        <h2 class="display-5 fw-bold text-dark mb-0">{{ message_count }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 bg-white h-100 border-bottom border-success border-4">
+                    <div class="card-body">
+                        <h6 class="text-muted fw-bold text-uppercase mb-2">AI Chats</h6>
+                        <h2 class="display-5 fw-bold text-dark mb-0">{{ ai_conv_count }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                        <h5 class="fw-bold">Recent Rooms</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for r in recent_rooms %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                                <div>
+                                    <h6 class="mb-0 fw-bold">{{ r.name }}</h6>
+                                    <small class="text-muted">by {{ r.created_by.public_name }}</small>
+                                </div>
+                                <span class="text-muted small">{{ r.created_at|date:"M j, H:i" }}</span>
+                            </li>
+                            {% empty %}
+                            <li class="list-group-item text-muted px-0">No rooms yet.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                        <h5 class="fw-bold">Message Logs</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for m in recent_messages %}
+                            <li class="list-group-item px-0 py-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong class="text-primary small">{{ m.sender.public_name }}</strong>
+                                    <span class="text-muted" style="font-size: 0.7rem;">{{ m.created_at|date:"M j, H:i" }}</span>
+                                </div>
+                                <div class="small bg-light p-2 rounded-2 text-dark" style="word-break: break-word;">{{ m.content|truncatewords:15 }}</div>
+                                <div class="text-muted mt-1" style="font-size: 0.7rem;">Room: {{ m.room.name }}</div>
+                            </li>
+                            {% empty %}
+                            <li class="list-group-item text-muted px-0">No messages yet.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="col-sm-6 col-md-4">
-    <div class="card">
-      <div class="card-body">
-        <h2 class="h6 card-title">Guests</h2>
-        <p class="card-text display-6">{{ guest_count }}</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-md-4">
-    <div class="card">
-      <div class="card-body">
-        <h2 class="h6 card-title">Rooms</h2>
-        <p class="card-text display-6">{{ room_count }}</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-md-4">
-    <div class="card">
-      <div class="card-body">
-        <h2 class="h6 card-title">Messages</h2>
-        <p class="card-text display-6">{{ message_count }}</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-md-4">
-    <div class="card">
-      <div class="card-body">
-        <h2 class="h6 card-title">AI conversations</h2>
-        <p class="card-text display-6">{{ ai_conv_count }}</p>
-      </div>
-    </div>
-  </div>
 </div>
 
-<section aria-label="Recent activity">
-  <h2 class="h5 mb-3">Recent rooms</h2>
-  <ul class="list-group mb-4">
-    {% for r in recent_rooms %}
-      <li class="list-group-item d-flex justify-content-between">
-        <span>{{ r.name }}</span>
-        <span class="text-muted small">by {{ r.created_by.public_name }} · {{ r.created_at|date:"M j, H:i" }}</span>
-      </li>
-    {% empty %}
-      <li class="list-group-item text-muted">No rooms yet.</li>
-    {% endfor %}
-  </ul>
-
-  <h2 class="h5 mb-3">Recent messages</h2>
-  <ul class="list-group mb-4">
-    {% for m in recent_messages %}
-      <li class="list-group-item">
-        <strong>{{ m.sender.public_name }}</strong> in {{ m.room.name }}: {{ m.content|truncatewords:15 }}
-        <span class="text-muted small">{{ m.created_at|date:"M j, H:i" }}</span>
-      </li>
-    {% empty %}
-      <li class="list-group-item text-muted">No messages yet.</li>
-    {% endfor %}
-  </ul>
-
-  <h2 class="h5 mb-3">Recent AI conversations</h2>
-  <ul class="list-group">
-    {% for c in recent_conversations %}
-      <li class="list-group-item d-flex justify-content-between">
-        <span>{{ c.title|default:"Conversation"|truncatewords:6 }}</span>
-        <span class="text-muted small">{{ c.user.public_name }} · {{ c.updated_at|date:"M j, H:i" }}</span>
-      </li>
-    {% empty %}
-      <li class="list-group-item text-muted">No AI conversations yet.</li>
-    {% endfor %}
-  </ul>
-</section>
+<style>
+    nav.navbar, footer { display: none !important; }
+    body { overflow: hidden; }
+    
+    .hover-opacity-100:hover { opacity: 1 !important; }
+    
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #ced4da; border-radius: 6px; }
+</style>
 {% endblock %}

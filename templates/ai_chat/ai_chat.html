@@ -1,61 +1,79 @@
 {% extends "base.html" %}
 {% load static %}
-{# AI Tree Hole page: header + AppFlow embed or fallback message. Do not change url names, external links depend on them. #}
 
 {% block title %}AI Tree Hole — EchoSpace{% endblock %}
 
 {% block content %}
-{# Page header and "New conversation" entry (used for direct navigation, keep link as-is) #}
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-  <div>
-    <h1 class="h2 mb-1">AI Tree Hole</h1>
-    <p class="text-muted small mb-0">
-      Share what is on your mind with the AI assistant inside EchoSpace.
-    </p>
-  </div>
-  <a href="{% url 'ai_chat:ai_chat' %}" class="btn btn-sm btn-outline-primary py-1 px-3" style="min-height: auto;">
-    New conversation
-  </a>
+<div class="lobby-layout position-fixed top-0 start-0 w-100 h-100 d-flex bg-white" style="z-index: 1000;">
+    
+    <div class="border-end bg-light d-flex flex-column align-items-center py-4 shadow-sm" style="width: 80px; z-index: 10;">
+        <div class="dropdown mb-4">
+            <a href="#" class="nav-icon text-decoration-none text-dark fw-bold" data-bs-toggle="dropdown" aria-expanded="false" title="Account">
+                <div class="icon-circle border bg-white">User</div>
+            </a>
+            <ul class="dropdown-menu shadow-sm border-0">
+                <li><h6 class="dropdown-header">Hi, {{ user.public_name|default:"Guest" }}</h6></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">Logout</a></li>
+            </ul>
+        </div>
+        <a href="{% url 'ai_chat:ai_chat' %}" class="nav-icon text-decoration-none text-white fw-bold mb-4" title="AI Tree Hole">
+            <div class="icon-circle bg-dark shadow-sm">AI</div>
+        </a>
+        
+        <a href="{% url 'chat:lobby' %}" class="nav-icon text-decoration-none text-dark fw-bold mb-4" title="Lobby">
+            <div class="icon-circle border bg-white">Pub</div>
+        </a>
+    </div>
+
+    <div class="flex-grow-1 d-flex flex-column bg-white position-relative h-100">
+        
+        <div class="px-4 py-3 border-bottom d-flex justify-content-between align-items-center" style="z-index: 5; background-color: #fcfcfc;">
+            <div class="d-flex align-items-center">
+                <span class="fs-4 me-2"></span>
+                <h2 class="h5 mb-0 fw-bold me-3">AI Tree Hole</h2>
+                <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-2" style="font-weight: 500;">Online</span>
+            </div>
+            
+            <a href="{% url 'ai_chat:ai_chat' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 d-flex align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-arrow-clockwise me-1" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                </svg>
+                Reset Conversation
+            </a>
+        </div>
+
+        <div class="flex-grow-1 position-relative h-100 w-100">
+            {% if appflow_enabled and appflow_url %}
+                <iframe src="{{ appflow_url }}" title="EchoSpace AI Assistant" style="width: 100%; height: 100%; border: none; display: block;"></iframe>
+            {% else %}
+                <div class="d-flex flex-column align-items-center justify-content-center h-100 p-5 text-center bg-light">
+                    <div class="fs-1 mb-3"></div>
+                    <h3 class="h4 fw-bold mb-2">AI is taking a nap</h3>
+                    <p class="text-muted max-w-500">
+                        The embedded AI assistant hasn't been configured by the administrator yet.<br>
+                        Please check the <code>.env</code> file configuration.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
-<div class="row">
-  <div class="col-12">
-    {% if appflow_enabled and appflow_url %}
-      {# Main chat area: AppFlow standalone page in iframe. Height tuned to reduce scroll; adjust if needed. #}
-      <section aria-label="AI assistant chat" class="card">
-        <div class="card-body p-0">
-          <div
-            class="ratio"
-            style="--bs-aspect-ratio: 110%; min-height: 70vh;"
-          >
-            <iframe
-              src="{{ appflow_url }}"
-              title="EchoSpace AI Assistant"
-              width="100%"
-              height="100%"
-              style="border: 0; width: 100%; height: 100%;"
-              loading="lazy"
-            ></iframe>
-          </div>
-        </div>
-      </section>
-    {% else %}
-      {# Fallback when AppFlow is not configured; no 500, just a hint for admins #}
-      <section aria-label="AI assistant unavailable" class="card">
-        <div class="card-body">
-          <h2 class="h5 mb-2">AI chat is currently unavailable</h2>
-          <p class="mb-2">
-            The embedded AppFlow AI assistant has not been configured yet, so the AI Tree Hole is temporarily disabled.
-          </p>
-          <p class="text-muted small mb-0">
-            Please enable <code>APPFLOW_AI_CHAT_ENABLED</code> and configure
-            <code>APPFLOW_AI_CHAT_URL</code> in the environment variables, then try again.
-          </p>
-        </div>
-      </section>
-    {% endif %}
-  </div>
-</div>
+
+<style>
+    nav.navbar, footer { display: none !important; }
+    body { overflow: hidden !important; }
+    
+    .icon-circle {
+        width: 48px; height: 48px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.8rem; transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .nav-icon:hover .icon-circle { 
+        transform: translateY(-2px); 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+    }
+</style>
 {% endblock %}
-
-{% block extra_js %}{% endblock %}

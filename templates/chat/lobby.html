@@ -4,73 +4,186 @@
 {% block title %}Lobby — EchoSpace{% endblock %}
 
 {% block content %}
-<h1 class="h2 mb-4">Chat Lobby</h1>
+<div class="lobby-layout position-fixed top-0 start-0 w-100 h-100 d-flex bg-light" style="z-index: 1000;">
+    
 
-{% if is_guest %}
-  <p class="text-muted">Guests can join rooms but cannot create new rooms.</p>
-{% else %}
-  <div class="mb-4">
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createRoomModal">Create Room</button>
-  </div>
-  <div class="modal fade" id="createRoomModal" tabindex="-1" aria-labelledby="createRoomModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2 id="createRoomModalLabel" class="modal-title h5">Create a new room</h2>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="border-end bg-white d-flex flex-column align-items-center py-4 shadow-sm" style="width: 80px; z-index: 10;">
+        
+        <div class="dropdown mb-4">
+            <a href="#" class="nav-icon text-decoration-none text-dark fw-bold" data-bs-toggle="dropdown" aria-expanded="false" title="Account">
+                <div class="icon-circle border bg-light">User</div>
+            </a>
+            <ul class="dropdown-menu shadow-sm border-0" style="z-index: 1050;">
+                <li><h6 class="dropdown-header">Hi, {{ user.public_name|default:"Guest" }}</h6></li>
+                
+                {% if user.is_staff %}
+                <li><a class="dropdown-item fw-bold text-primary" href="{% url 'dashboard:dashboard_home' %}"> Admin Dashboard</a></li>
+                {% endif %}
+                
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">Logout</a></li>
+            </ul>
         </div>
-        <form method="post" action="{% url 'chat:create_room' %}">
-          {% csrf_token %}
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="id_name" class="form-label">Room name</label>
-              <input type="text" name="name" id="id_name" class="form-control" maxlength="100" required placeholder="Room name">
-            </div>
-            <div class="mb-3">
-              <label for="id_description" class="form-label">Description (optional)</label>
-              <textarea name="description" id="id_description" class="form-control" rows="2" maxlength="255" placeholder="Short description"></textarea>
-            </div>
-            <div class="mb-3">
-              <label for="id_max_capacity" class="form-label">Max capacity (2–100)</label>
-              <input type="number" name="max_capacity" id="id_max_capacity" class="form-control" min="2" max="100" value="20">
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Create</button>
-          </div>
-        </form>
-      </div>
+        
+        <a href="{% url 'ai_chat:ai_chat' %}" class="nav-icon text-decoration-none text-dark fw-bold mb-4" title="AI Tree Hole">
+            <div class="icon-circle border bg-light">AI</div>
+        </a>
+        
+        <a href="{% url 'chat:lobby' %}" class="nav-icon text-decoration-none text-white fw-bold mb-4" title="Lobby">
+            <div class="icon-circle bg-dark shadow-sm">Pub</div>
+        </a>
     </div>
-  </div>
+
+
+    <div class="border-end bg-white d-flex flex-column h-100" style="width: 320px;">
+        
+        <div class="p-3 d-flex align-items-center justify-content-between border-bottom">
+            <input type="text" id="roomSearchInput" class="form-control form-control-sm rounded-pill bg-light border-0 px-3 me-2" placeholder="Search room..." onkeyup="filterRooms()">
+            
+            {% if not is_guest %}
+                <button class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center p-0" 
+                        style="width: 32px; height: 32px; flex-shrink: 0;" 
+                        data-bs-toggle="modal" data-bs-target="#createRoomModal" title="Create Room">
+                    <span class="fs-5">+</span>
+                </button>
+            {% endif %}
+        </div>
+
+        <div class="flex-grow-1 overflow-auto custom-scrollbar">
+            <div class="px-3 py-3 d-flex justify-content-between align-items-center">
+                <span class="text-uppercase text-muted small fw-bold tracking-wide"> All Rooms</span>
+                <span class="badge bg-light text-secondary rounded-pill border">{{ rooms|length }}</span>
+            </div>
+            
+            <ul class="list-group list-group-flush px-2">
+                {% for room in rooms %}
+                    <li class="list-group-item list-group-item-action border-0 rounded-3 mb-1 p-2 room-item">
+                        <form method="post" action="{% url 'chat:join_room' room.id %}" class="m-0 p-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-link text-decoration-none text-dark d-flex justify-content-between w-100 p-0 m-0 text-start">
+                                <span class="text-truncate fw-semibold room-name" style="max-width: 180px; font-size: 0.9rem;">{{ room.name }}</span>
+                                <span class="text-muted small" style="font-size: 0.8rem;">{{ room.current_count }}/{{ room.max_capacity }}</span>
+                            </button>
+                        </form>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item border-0 text-muted small text-center mt-3 empty-state">No active rooms.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+
+    <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center bg-light position-relative">
+        <div class="placeholder-circle d-flex align-items-center justify-content-center mb-4">
+            <span class="text-muted fs-5 fw-semibold">EchoSpace</span>
+        </div>
+        <p class="text-muted text-center">Select a room from the left to start chatting,<br>or create a new one.</p>
+    </div>
+</div>
+
+{% if not is_guest %}
+<div class="modal fade" id="createRoomModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h3 class="modal-title h5 fw-bold">Create a new room</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'chat:create_room' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="id_name" class="form-label text-muted small fw-bold">Room Name</label>
+                        <input type="text" name="name" id="id_name" class="form-control bg-light border-0" maxlength="100" required placeholder="e.g. Midnight Whispers">
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_description" class="form-label text-muted small fw-bold">Topic (optional)</label>
+                        <textarea name="description" id="id_description" class="form-control bg-light border-0" rows="2" maxlength="255" placeholder="What is this room about?"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_max_capacity" class="form-label text-muted small fw-bold">Max Capacity</label>
+                        <select name="max_capacity" id="id_max_capacity" class="form-select bg-light border-0">
+                            <option value="5">5 members</option>
+                            <option value="10">10 members</option>
+                            <option value="20" selected>20 members</option>
+                            <option value="50">50 members</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-dark px-4">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endif %}
 
-<section aria-label="Room list">
-  <h2 class="h5 visually-hidden">Rooms</h2>
-  <ul class="list-unstyled">
-    {% for room in rooms %}
-      <li class="card mb-3" data-room-id="{{ room.id }}">
-        <div class="card-body">
-          <h3 class="h6 card-title">{{ room.name }}</h3>
-          <p class="card-text text-muted small">{{ room.description|default:"No description" }}</p>
-          <p class="card-text small">
-            <span class="room-current-count" data-room-id="{{ room.id }}">{{ room.current_count }}</span> / {{ room.max_capacity }} members
-            &middot; Created {{ room.created_at_display }}
-          </p>
-          <a href="{% url 'chat:room' room.id %}" class="btn btn-sm btn-outline-primary me-2">View room</a>
-          <form method="post" action="{% url 'chat:join_room' room.id %}" class="d-inline">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-primary">Join</button>
-          </form>
-        </div>
-      </li>
-    {% empty %}
-      <li class="text-muted">No rooms yet. Create one to get started.</li>
-    {% endfor %}
-  </ul>
-</section>
+
+<style>
+    nav.navbar, footer { display: none !important; }
+    body { overflow: hidden; }
+    
+    .messages {
+        position: fixed !important;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999 !important;
+        width: 100%;
+        max-width: 400px;
+    }
+    .messages .alert {
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        border: none;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .icon-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .nav-icon:hover .icon-circle {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .room-item:hover { background-color: #f8f9fa !important; }
+    
+    .placeholder-circle {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        border: 2px dashed #ced4da;
+        background-color: #f8f9fa;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 4px; }
+</style>
 {% endblock %}
 
+
 {% block extra_js %}
+<script>
+    function filterRooms() {
+        const query = document.getElementById('roomSearchInput').value.toLowerCase();
+        const rooms = document.querySelectorAll('.room-item');
+        
+        rooms.forEach(room => {
+            const name = room.querySelector('.room-name').textContent.toLowerCase();
+            room.style.display = name.includes(query) ? 'block' : 'none';
+        });
+    }
+</script>
 <script src="{% static 'js/lobby.js' %}"></script>
 {% endblock %}
