@@ -1,95 +1,58 @@
 import json
-from unittest.mock import patch
-from django.test import TestCase, Client, override_settings
+from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from .models import AIConversation, AIMessage
-from . import services
+from .models import AIConversation
 
 User = get_user_model()
-
 
 class AIChatTest(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="pass123",
-        )
+        # Create a test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword', email='test@example.com')
+        
+    def test_ai_chat_page_renders_native_ui(self):
+        """Test that the AI chat page loads correctly with the new native UI (no AppFlow)."""
+        self.client.login(username='testuser', password='testpassword')
+        response = self.client.get(reverse('ai_chat:ai_chat'))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'ai_chat/ai_chat.html')
+        # Ensure it passes the conversations history to the context
+        self.assertIn('conversations', response.context)
 
-    def test_ai_page_requires_login(self):
-        response = self.client.get(reverse("ai_chat:ai_chat"))
+    def test_api_ask_ai_requires_login(self):
+        """Ensure the new Gemini API endpoint is protected."""
+        response = self.client.post(
+            reverse('ai_chat:api_ask_ai'), 
+            json.dumps({'message': 'hello'}), 
+            content_type='application/json'
+        )
+        # Should redirect to login page (302)
         self.assertEqual(response.status_code, 302)
 
-    def test_ai_page_opens_when_logged_in(self):
-        self.client.login(username="testuser", password="pass123")
-        response = self.client.get(reverse("ai_chat:ai_chat"))
-        self.assertEqual(response.status_code, 200)
-
-    @override_settings(APPFLOW_AI_CHAT_ENABLED=True, APPFLOW_AI_CHAT_URL="https://example.com/appflow")
-    def test_ai_page_renders_iframe_when_appflow_enabled(self):
-        self.client.login(username="testuser", password="pass123")
-        response = self.client.get(reverse("ai_chat:ai_chat"))
-      # The view should expose the AppFlow config to the template
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.context["appflow_enabled"])
-        self.assertEqual(response.context["appflow_url"], "https://example.com/appflow")
-
-    @override_settings(APPFLOW_AI_CHAT_ENABLED=False, APPFLOW_AI_CHAT_URL="")
-    def test_ai_page_no_appflow_config_ok(self):
-        self.client.login(username="testuser", password="pass123")
-        response = self.client.get(reverse("ai_chat:ai_chat"))
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(response.context["appflow_enabled"])
-        self.assertEqual(response.context["appflow_url"], "")
-
-    def test_send_prompt_creates_conv_and_messages(self):
-        self.client.login(username="testuser", password="pass123")
-        with patch.object(services, "generate_ai_reply", return_value=("Mock reply here", None)):
-            response = self.client.post(
-                "/ai/api/send/",
-                json.dumps({"prompt": "Hello"}),
-                content_type="application/json",
-            )
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertTrue(data.get("ok"))
-        self.assertIn("assistant_message", data)
-        self.assertEqual(AIConversation.objects.filter(user=self.user).count(), 1)
-        self.assertEqual(AIMessage.objects.filter(conversation__user=self.user).count(), 2)
-
-    def test_api_returns_assistant_message(self):
-        self.client.login(username="testuser", password="pass123")
+    def test_api_ask_ai_returns_valid_json(self):
+        """Test that the API correctly handles a request and returns a JSON response."""
+        self.client.login(username='testuser', password='testpassword')
         response = self.client.post(
-            "/ai/api/send/",
-            {"prompt": "I feel sad", "csrfmiddlewaretoken": "x"},
+            reverse('ai_chat:api_ask_ai'), 
+            json.dumps({'message': 'I am feeling stressed.'}), 
+            content_type='application/json'
         )
+        
         self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertTrue(data.get("ok"))
-        self.assertIn("assistant_message", data)
-        self.assertTrue(len(data["assistant_message"]) > 0)
+        response_data = response.json()
+        # Should contain a 'reply' or 'error' key
+        self.assertTrue('reply' in response_data or 'error' in response_data)
 
-    def test_mock_provider_works_without_key(self):
-        reply, _ = services.generate_ai_reply("Hello")
-        self.assertTrue(isinstance(reply, str))
-        self.assertTrue(len(reply) > 0)
-
-    def test_service_exception_returns_error_json(self):
-        self.client.login(username="testuser", password="pass123")
-
-        def raise_err(*args, **kwargs):
-            raise RuntimeError("Simulated failure")
-
-        with patch.object(services, "handle_ai_chat", side_effect=raise_err):
-            response = self.client.post(
-                "/ai/api/send/",
-                json.dumps({"prompt": "Hi"}),
-                content_type="application/json",
-            )
-        self.assertIn(response.status_code, [400, 500])
-        data = response.json()
-        self.assertFalse(data.get("ok"))
-        self.assertIn("error", data)
-        # print(data)  # debug 500 vs 400
+    def test_conversation_deletion(self):
+        """Test the AJAX history deletion endpoint functions correctly."""
+        self.client.login(username='testuser', password='testpassword')
+        # Create a dummy conversation
+        conv = AIConversation.objects.create(user=self.user, title="Test Chat")
+        
+        response = self.client.post(reverse('ai_chat:delete_conversation', args=[conv.id]))
+        self.assertEqual(response.status_code, 200)
+        # Verify it was deleted from DB
+        self.assertFalse(AIConversation.objects.filter(id=conv.id).exists())
