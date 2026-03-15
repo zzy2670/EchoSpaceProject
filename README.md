@@ -1,13 +1,14 @@
 # EchoSpace
 
-Anonymous group chat + AI “Tree Hole” (emotional support chat). Django backend, Bootstrap front, SQLite locally / Postgres in prod.
+Anonymous group chat + Native AI “Tree Hole” (emotional support chat). Django backend, Bootstrap 5 SPA frontend, SQLite locally / Postgres in prod.
 
 ## What’s in it
 
-- Home, register / login / guest.
-- Lobby: list rooms, create (if not guest), join. Group chat via polling.
-- AI Tree Hole: chat with AI (mock or openai/dashscope). Can embed AppFlow iframe if you set the env vars.
-- Dashboard for staff (counts, rooms, messages, AI).
+- Home, register / login / guest (via offcanvas drawer).
+- Lobby: list active rooms, search filtering, create (if not guest), join.
+- Room: group chat via polling, message withdrawal, dynamic UI updates.
+- AI Tree Hole: native chat with Gemini 2.5 Flash API. Persistent history stored in DB.
+- Dashboard for staff (metrics, room list, message logs, AI conversations).
 
 ## Run locally
 
@@ -19,40 +20,21 @@ cd EchoSpaceProject
 python -m venv .venv
 .venv\Scripts\activate   # Windows; on Mac/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-```
 
 Copy env and edit:
-
-```bash
 cp .env.example .env
-```
 
-In `.env`: `SECRET_KEY`, `DEBUG=True`, `AI_PROVIDER=mock` (or `openai`/`dashscope` with keys). For AppFlow embed: `APPFLOW_AI_CHAT_ENABLED=True`, `APPFLOW_AI_CHAT_URL=<your AppFlow page url>`.
+In .env, set the following:
+SECRET_KEY=change-me-to-a-secure-random-string
+DEBUG=True
+AI_PROVIDER=gemini
+GEMINI_API_KEY=<your-google-gemini-api-key>
 
 Migrate and run:
-
-```bash
+python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver
-```
 
-Optional: `createsuperuser` for admin/dashboard. Then open http://127.0.0.1:8000/
-
-## Tests
-
-```bash
+Optional: python manage.py createsuperuser for admin/dashboard access. Then open http://127.0.0.1:8000/
 python manage.py test
-```
-
-Covers main, accounts, chat (lobby/rooms/API), ai_chat (mock + appflow config), dashboard.
-
-## Deploy (e.g. Render)
-
-New Web Service, connect repo, add Postgres (`DATABASE_URL`). Set env vars from `.env.example`. Build: `pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate`. Start: `gunicorn EchoSpace.wsgi:application`. Put your deployed URL in docs if needed.
-
-## Repo layout
-
-- `EchoSpace/` — settings, urls, wsgi
-- `main/`, `accounts/`, `chat/`, `ai_chat/`, `dashboard/` — apps
-- `templates/`, `static/`
-- `requirements.txt`, `render.yaml`, `.env.example`
+Covers main, accounts, chat (lobby/rooms/API), ai_chat, and dashboard components.
