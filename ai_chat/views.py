@@ -62,7 +62,7 @@ def api_ask_ai(request):
             AIMessage.objects.create(conversation=conv, role="user", content=user_message)
 
 
-            model = genai.GenerativeModel('gemini-pro-latest')
+            model = genai.GenerativeModel('gemini-2.5-flash')
             system_prompt = f"""
             You are an empathetic, gentle, and non-judgmental emotional supporter in an anonymous chat app called EchoSpace.
             Your goal is to provide a safe space for users to vent their stress.
