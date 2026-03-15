@@ -6,7 +6,7 @@ from pathlib import Path
 
 import dj_database_url
 
-# Load .env for local development (optional)
+
 if os.path.exists(Path(__file__).resolve().parent.parent / ".env"):
     from dotenv import load_dotenv
     load_dotenv(Path(__file__).resolve().parent.parent / ".env")
@@ -49,7 +49,7 @@ WSGI_APPLICATION = "EchoSpace.wsgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [BASE_DIR / "pages"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
