@@ -46,7 +46,6 @@ def api_ask_ai(request):
             if not user_message:
                 return JsonResponse({"reply": "I didn't hear anything. Could you say that again?"})
 
-
             if conv_id:
                 conv = AIConversation.objects.filter(id=conv_id, user=request.user).first()
                 if conv:
@@ -58,23 +57,33 @@ def api_ask_ai(request):
             if not conv:
                 return JsonResponse({"error": "Conversation not found"}, status=404)
 
+            past_messages = AIMessage.objects.filter(conversation=conv).order_by('created_at')
+            history_for_gemini =[]
+            for msg in past_messages:
+                role = "user" if msg.role == "user" else "model"
+                history_for_gemini.append({
+                    "role": role,
+                    "parts": [msg.content]
+                })
+
 
             AIMessage.objects.create(conversation=conv, role="user", content=user_message)
 
 
-            model = genai.GenerativeModel('gemini-2.5-flash')
-            system_prompt = f"""
-            You are an empathetic, gentle, and non-judgmental emotional supporter in an anonymous chat app called EchoSpace.
-            Your goal is to provide a safe space for users to vent their stress.
-            Rules:
-            1. Keep your responses conversational, warm, and concise.
-            2. Always validate the user's feelings first.
+            model = genai.GenerativeModel(
+                model_name='gemini-2.5-flash',
+                system_instruction=(
+                    "You are an empathetic, gentle, and non-judgmental emotional supporter in an anonymous chat app called EchoSpace. "
+                    "Your goal is to provide a safe space for users to vent their stress. "
+                    "Rules: 1. Keep your responses conversational, warm, and concise. 2. Always validate the user's feelings first. "
+                    "3. Answer user's direct questions correctly based on conversation context."
+                )
+            )
             
-            The user says: "{user_message}"
+            chat = model.start_chat(history=history_for_gemini)
             
-            EchoBot's response:
-            """
-            response = model.generate_content(system_prompt)
+
+            response = chat.send_message(user_message)
             reply_text = response.text
 
 
