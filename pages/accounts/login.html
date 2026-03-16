@@ -8,7 +8,8 @@
     <div class="row flex-grow-1 align-items-center justify-content-center position-relative">
         
         <div class="col-md-6 d-none d-md-flex flex-column justify-content-center align-items-center h-100" 
-             style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); box-shadow: inset -10px 0 20px rgba(0,0,0,0.2);">
+        <div class="col-md-6 d-none d-md-flex flex-column justify-content-center align-items-center h-100" 
+        style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); box-shadow: inset -10px 0 20px rgba(0,0,0,0.2);">
             <div class="p-5 text-center text-white" style="background: rgba(0,0,0,0.2); border-radius: 15px; backdrop-filter: blur(5px);">
                 <h1 class="display-4 fw-bold mb-3">EchoSpace</h1>
                 <p class="lead fst-italic">"Embrace your emotions in anonymity"</p>
@@ -100,75 +101,16 @@
     </div>
 </div>
 
-<style>
-    nav.navbar, footer { display: none !important; }
-    body { background-color: #f8f9fa; }
-    .form-control { border-radius: 0; }
-    .messages {
-        position: absolute !important;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 9999;
-        width: 100%;
-        max-width: 400px;
-    }
-    .messages .alert {
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        border: none;
-        border-radius: 8px;
-        text-align: center;
-        font-weight: 500;
-    }
-</style>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.body.addEventListener('submit', function(e) {
-        
-        if (e.target.matches('#ajax-register-form')) {
-            e.preventDefault(); 
-            
-            const form = e.target;
-            const btn = form.querySelector('button[type="submit"]');
-            const originalText = btn.innerHTML;
-            
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Processing...';
-            btn.disabled = true;
-
-            fetch(form.action, {
-                method: 'POST',
-                body: new FormData(form),
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(response => {
-                if (response.redirected) {
-                    window.location.href = response.url; 
-                    return null;
-                }
-                return response.text();
-            })
-            .then(html => {
-                if (!html) return;
-                
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                const registerUrl = "{% url 'accounts:register' %}";
-                const newForm = doc.querySelector(`form[action="${registerUrl}"]`);
-                if (newForm) {
-                    form.innerHTML = newForm.innerHTML;
-                }
-            })
-            .catch(err => {
-                console.error('Registration error:', err);
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            });
-        }
-    });
-});
+    window.AUTH_CONFIG = {
+        registerUrl: "{% url 'accounts:register' %}"
+    };
 </script>
+
+
+<script src="{% static 'js/auth.js' %}"></script>
 {% endblock %}

@@ -122,68 +122,10 @@
 {% endif %}
 
 
-<style>
-    nav.navbar, footer { display: none !important; }
-    body { overflow: hidden; }
-    
-    .messages {
-        position: fixed !important;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 9999 !important;
-        width: 100%;
-        max-width: 400px;
-    }
-    .messages .alert {
-        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        border: none;
-        border-radius: 8px;
-        text-align: center;
-        font-weight: 500;
-    }
 
-    .icon-circle {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.8rem;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .nav-icon:hover .icon-circle {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    .room-item:hover { background-color: #f8f9fa !important; }
-    
-    .placeholder-circle {
-        width: 200px;
-        height: 200px;
-        border-radius: 50%;
-        border: 2px dashed #ced4da;
-        background-color: #f8f9fa;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 4px; }
-</style>
 {% endblock %}
 
 
 {% block extra_js %}
-<script>
-    function filterRooms() {
-        const query = document.getElementById('roomSearchInput').value.toLowerCase();
-        const rooms = document.querySelectorAll('.room-item');
-        
-        rooms.forEach(room => {
-            const name = room.querySelector('.room-name').textContent.toLowerCase();
-            room.style.display = name.includes(query) ? 'block' : 'none';
-        });
-    }
-</script>
 <script src="{% static 'js/lobby.js' %}"></script>
 {% endblock %}

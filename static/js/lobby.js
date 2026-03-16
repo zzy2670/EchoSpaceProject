@@ -24,3 +24,14 @@
     setInterval(fetchRooms, POLL_INTERVAL_MS);
   }
 })();
+
+
+window.filterRooms = function() {
+    const query = document.getElementById('roomSearchInput').value.toLowerCase();
+    const rooms = document.querySelectorAll('.room-item');
+    
+    rooms.forEach(room => {
+        const name = room.querySelector('.room-name').textContent.toLowerCase();
+        room.style.display = name.includes(query) ? 'block' : 'none';
+    });
+};

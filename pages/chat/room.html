@@ -127,57 +127,7 @@
     </div>
 </div>
 
-<style>
-    nav.navbar, footer { display: none !important; }
-    body { overflow: hidden; }
-    
-    .icon-circle {
-        width: 48px; height: 48px; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.8rem; transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .nav-icon:hover .icon-circle { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .room-item:hover { background-color: #f8f9fa !important; }
-    
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #ced4da; border-radius: 6px; }
-    
 
-    .bubble-other {
-        background-color: #f1f3f5;
-        color: #212529;
-        padding: 10px 16px;
-        border-radius: 18px;
-        border-top-left-radius: 4px; 
-        font-size: 0.95rem;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        word-break: break-word; 
-        white-space: pre-wrap;  
-        text-align: left;       
-    }
-    
-    .bubble-self {
-        background-color: #e7f1ff; 
-        color: #084298;
-        padding: 10px 16px;
-        border-radius: 18px;
-        border-top-right-radius: 4px; 
-        font-size: 0.95rem;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        word-break: break-word; 
-        white-space: pre-wrap;  
-        text-align: left;     
-    }
-
-    .withdraw-btn {
-        width: 24px; height: 24px; padding: 0;
-        opacity: 0; transform: scale(0.8);
-        transition: opacity 0.2s, transform 0.2s;
-    }
-    .msg-wrapper:hover .withdraw-btn {
-        opacity: 1; transform: scale(1);
-    }
-</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -186,30 +136,6 @@
     window.csrfToken = "{{ csrf_token }}";
     window.lastMessageId = parseInt("{{ last_message_id|default:'0' }}");
     window.currentUsername = "{{ request.user.public_name|escapejs }}";
-
-    const msgList = document.getElementById('message-list');
-    if(msgList) { msgList.scrollTop = msgList.scrollHeight; }
-
-    function filterRooms() {
-        const query = document.getElementById('roomSearchInput').value.toLowerCase();
-        const rooms = document.querySelectorAll('.room-item');
-        rooms.forEach(room => {
-            const name = room.querySelector('.room-name').textContent.toLowerCase();
-            room.style.display = name.includes(query) ? 'block' : 'none';
-        });
-    }
-
-    function withdrawMessage(msgId) {
-        if(confirm("Are you sure you want to withdraw this message?")) {
-            console.log("Withdrawing message ID:", msgId);
-            const msgElement = document.querySelector(`.msg-wrapper[data-msg-id="${msgId}"]`);
-            if (msgElement) {
-                msgElement.innerHTML = `<span class="text-muted small fst-italic py-1 px-3 rounded-pill" style="background-color: #f1f3f5; font-size: 0.75rem;">[ Message withdrawn ]</span>`;
-                msgElement.classList.remove('align-self-end');
-                msgElement.classList.add('w-100', 'text-center');
-            }
-        }
-    }
 </script>
 
 <script src="{% static 'js/chat.js' %}"></script>

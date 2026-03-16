@@ -36,7 +36,7 @@
               <strong class="text-primary" style="font-size: 0.75rem;">Me</strong>
           </div>
           <div class="d-flex align-items-start justify-content-end w-100">
-              <button class="btn btn-sm btn-light text-danger rounded-circle shadow-sm withdraw-btn me-2 mt-1 d-flex align-items-center justify-content-center" title="Withdraw message" onclick="withdrawMessage(${msgId})">×</button>
+              <button class="btn btn-sm btn-light text-danger rounded-circle shadow-sm withdraw-btn me-2 mt-1 d-flex align-items-center justify-content-center" title="Withdraw message" onclick="window.withdrawMessage(${msgId})">×</button>
               <div class="bubble-self">${safeContent}</div>
           </div>
       `;
@@ -129,3 +129,26 @@
   setInterval(pollMessages, POLL_INTERVAL_MS);
   setInterval(pollStats, POLL_INTERVAL_MS);
 })();
+
+
+
+window.filterRooms = function() {
+    const query = document.getElementById('roomSearchInput').value.toLowerCase();
+    const rooms = document.querySelectorAll('.room-item');
+    rooms.forEach(room => {
+        const name = room.querySelector('.room-name').textContent.toLowerCase();
+        room.style.display = name.includes(query) ? 'block' : 'none';
+    });
+};
+
+window.withdrawMessage = function(msgId) {
+    if(confirm("Are you sure you want to withdraw this message?")) {
+        console.log("Withdrawing message ID:", msgId);
+        const msgElement = document.querySelector(`.msg-wrapper[data-msg-id="${msgId}"]`);
+        if (msgElement) {
+            msgElement.innerHTML = `<span class="text-muted small fst-italic py-1 px-3 rounded-pill" style="background-color: #f1f3f5; font-size: 0.75rem;">[ Message withdrawn ]</span>`;
+            msgElement.classList.remove('align-self-end');
+            msgElement.classList.add('w-100', 'text-center');
+        }
+    }
+};
